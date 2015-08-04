@@ -532,20 +532,44 @@ class PixivImage:
             PixivHelper.GetLogger().exception("Error when saving image info: " + filename + ", file is saved to: " + str(self.imageId) + ".js")
         info.write(str(self.ugoira_data))
         info.close()
-
     def CreateUgoira(self, filename):
         if len(self.ugoira_data) == 0:
             PixivHelper.GetLogger().exception("Missing ugoira animation info for image: " + str(self.imageId))
 
-        zipTarget = filename[:-4] + ".ugoira"
-        if os.path.exists(zipTarget):
-            os.remove(zipTarget)
+        #Make folder
+        workingDir = os.path.dirname(filename)
+        tempDir = workingDir + "\\temp"
+        if not os.path.exists(tempDir):
+            os.makedirs(tempDir)
 
-        shutil.copyfile(filename, zipTarget)
-        zipSize = os.stat(filename).st_size
-        jsStr = self.ugoira_data[:-1] + r',"zipSize":' + str(zipSize) + r'}'
+        #Extract all to a folder
+        zipTarget = filename
         with zipfile.ZipFile(zipTarget, mode="a") as z:
-            z.writestr("animation.json", jsStr)
+            z.extractall(tempDir)
+
+        #find delay, ex. ":70}" would fish out 70 as delay 
+        m = re.search(r':[0-9]*}', self.ugoira_data)
+        delay_s = m.group(0)[1:-1]
+        delay = int(delay_s)/1000
+
+        #Make gif using ImageMagick w/ workwround. Ran into some issues with unicode
+        import subprocess
+        prev_cwd = os.getcwd()
+        os.chdir(workingDir)
+        command = "convert -delay " + str(delay)+ " -loop 0 temp/** temp.gif"
+        subprocess.call(command, shell=True)
+        
+        #Cleanup
+        ugoira_filename = filename[:-4] + ".gif"
+        import warnings
+        with warnings.catch_warnings(): #suppress compr unicode warning
+            warnings.simplefilter("ignore")
+            shutil.copy("temp.gif", ugoira_filename )
+        os.remove("temp.gif")
+        os.chdir(prev_cwd)
+
+        #Delete folder containing images for ugoira
+        shutil.rmtree(tempDir) 
 
 class PixivListItem:
     '''Class for item in list.txt'''

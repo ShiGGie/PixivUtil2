@@ -608,7 +608,7 @@ def process_image(mode, artist=None, image_id=None, user_dir='', bookmark=False,
             if image.imageMode == 'ugoira_view':
                 if __config__.writeUgoiraInfo:
                     image.WriteUgoiraData(filename + ".js")
-                if __config__.createUgoira and result == PixivConstant.PIXIVUTIL_OK:
+                if __config__.createUgoira: #and result == PixivConstant.PIXIVUTIL_OK:
                     PixivHelper.printAndLog('info', "Creating ugoira archive => " + filename[:-4] + ".ugoira")
                     image.CreateUgoira(filename)
                     if __config__.deleteZipFile:
