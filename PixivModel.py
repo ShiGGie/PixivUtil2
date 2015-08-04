@@ -532,6 +532,8 @@ class PixivImage:
             PixivHelper.GetLogger().exception("Error when saving image info: " + filename + ", file is saved to: " + str(self.imageId) + ".js")
         info.write(str(self.ugoira_data))
         info.close()
+
+    #Requires ImageMagick to be installed http://www.imagemagick.org/script/binary-releases.php -- tested on windows
     def CreateUgoira(self, filename):
         if len(self.ugoira_data) == 0:
             PixivHelper.GetLogger().exception("Missing ugoira animation info for image: " + str(self.imageId))
